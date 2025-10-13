@@ -29,7 +29,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
   3. Clone the present repository:
      
     ```bash
-    git clone https://github.com/RossiVinicius/TypicalityOfContextuality.git
+      git clone https://github.com/RossiVinicius/TypicalityOfContextuality.git
     ```
   4. Install the remaining dependencies:
      
@@ -99,7 +99,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
           else:
               return robustness.value, sigma.value
      ```
-     This ensures that the main solver for the linear program will be ECOS, with an alternative try with CLARABEL. If none of the solvers manages to resolve the program, it will return a robustness of contextuality `r = 2`, which will later be ignore when computing typicality frequencies.
+     This ensures that the main solver for the linear program will be ECOS, with an alternative try with CLARABEL. If none of the solvers manages to resolve the program, it will return a robustness of contextuality `r = 2`, which will later be ignored when computing typicality frequencies.
 
 # Usage
-     
+     The code provides a 
