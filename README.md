@@ -10,11 +10,11 @@ The main features include:
 - Typicality analysis across various parameter regimes;
 - Statistical analysis with confidence intervals.
 
-  # Requirements
-  This code requires Python 3.7+, as well as the packages `numpy`, `qutip`, `tqdm` and `multiprocessing`.
-  Additionally, it requires the implementation of the Linear Program introduced in Physical Review Letters 132 (5), 050202 (2024), available at <https://github.com/pjcavalcanti/SimplexEmbeddingGPT>. Please follow the installation guidelines provided in that repository and make sure that the functions `fromListOfMatrixToListOfVectors` and `SimplexEmbedding` are working properly.
+# Requirements
+This code requires Python 3.7+, as well as the packages `numpy`, `qutip`, `tqdm` and `multiprocessing`.
+Additionally, it requires the implementation of the Linear Program introduced in Physical Review Letters 132 (5), 050202 (2024), available at <https://github.com/pjcavalcanti/SimplexEmbeddingGPT>. Please follow the installation guidelines provided in that repository and make sure that the functions `fromListOfMatrixToListOfVectors` and `SimplexEmbedding` are working properly.
 
-  # Installation
+# Installation
   1. Clone the repository containing the linear program implementation for testing simplex-embedability:
      ```
      git clone https://github.com/pjcavalcanti/SimplexEmbeddingGPT.git
@@ -30,7 +30,7 @@ The main features include:
     ```
   4. Install the remaining dependencies:
      ```
-    pip install qutip tqdm multiprocessing
+     pip install qutip tqdm multiprocessing
      ```
 
   In order to reproduce the computations in the paper, please also consider modifying the code provided in SimplexEmbeddingGPT.git accordingly:
@@ -97,5 +97,5 @@ The main features include:
      ```
      This ensures that the main solver for the linear program will be ECOS, with an alternative try with CLARABEL. If none of the solvers manages to resolve the program, it will return a robustness of contextuality `r = 2`, which will later be ignore when computing typicality frequencies.
 
-      # Usage
+# Usage
      
