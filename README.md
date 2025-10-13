@@ -1,4 +1,4 @@
-# TypicalityOfContextuality
+# Typicality of generalised contextuality certification in quantum prepare-and-measure scenarios
 This repository contains the Python code accompanying the manuscript "Typicality of contextuality certification in prepare and measure scenarios" [].
 
 The code provides tools for studying how often quantum contextuality is present in prepare-and-measure scenarios by performing large-scale numerical sampling of random quantum states and measurements, and assessing their simplex embeddability.
