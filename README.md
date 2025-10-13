@@ -16,30 +16,34 @@ Additionally, it requires the implementation of the Linear Program introduced in
 
 # Installation
   1. Clone the repository containing the linear program implementation for testing simplex-embedability:
-     ```
+     
+     ```bash
      git clone https://github.com/pjcavalcanti/SimplexEmbeddingGPT.git
      ```
   2. Install the dependencies for the linear program:
-     ```
+     
+     ```bash
       pip install numpy scipy cvxpy itertools pycddlib
      ```
      Please follow troubleshoot instructions provided in the README of SimplexEmbeddingGPT.git for a proper installation of `pycddlib`. Make sure that the functions `fromListOfMatrixToListOfVectors` and `SimplexEmbedding` are properly working. Follow the README for example usage.
   3. Clone the present repository:
-    ```
+     
+    ```bash
     git clone https://github.com/RossiVinicius/TypicalityOfContextuality.git
     ```
   4. Install the remaining dependencies:
-     ```
+     
+     ```bash
      pip install qutip tqdm multiprocessing
      ```
 
-  In order to reproduce the computations in the paper, please also consider modifying the code provided in SimplexEmbeddingGPT.git accordingly:
+  In order to reproduce the computations in the paper, please also modify the code provided in SimplexEmbeddingGPT.git accordingly:
   - In the file `mathtools.py`, replace the line `import cdd` to
-     ```
+     ```bash
      import cdd.gmp as cdd
      ```
   - In the file `mathtools.py`, modify the function `FindStateConeFacets` to the following:
-     ```
+     ```bash
     def FindStateConeFacets(S):
         S = np.array([[Rational(x).limit_denominator() for x in row] for row in S])
         C = cdd.matrix_from_array(S.T)
@@ -50,7 +54,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
         return H_S
      ```
   - In the file `mathtools.py`, modify the function `FindEffectConeFacets` to the following:
-     ```
+     ```bash
     def FindEffectConeFacets(E):
         E = np.array([[Rational(x).limit_denominator() for x in row] for row in E])
         C = cdd.matrix_from_array(E.T)
@@ -61,7 +65,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
      ```
      These steps ensure that the polytope description is done symbolically, increasing stability at the expense of performance.
    - In the file `simplexEmbedding.py`, modify the function `SimplicialConeEmbedding` to the following:
-     ```
+     ```bash
       def SimplicialConeEmbedding(H_S, H_E, accessibleFramentBornRule, depolarizingMap):
           H_S = np.array(H_S, dtype=float)
           H_E = np.array(H_E, dtype=float)
