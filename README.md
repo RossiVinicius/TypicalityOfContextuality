@@ -5,7 +5,6 @@ The code provides tools for studying how often quantum contextuality is present 
 
 The main features include:
 - Random sampling of quantum states (pure/mixed) and measurements (projective/POVMs);
-- Simplex embedding assessment to certify contextuality;
 - Parallelized computation for efficient large-scale sampling;
 - Typicality analysis across various parameter regimes;
 - Statistical analysis with confidence intervals.
