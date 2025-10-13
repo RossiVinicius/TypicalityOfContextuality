@@ -38,11 +38,11 @@ Additionally, it requires the implementation of the Linear Program introduced in
 
   In order to reproduce the computations in the paper, please also modify the code provided in SimplexEmbeddingGPT.git accordingly:
   - In the file `mathtools.py`, replace the line `import cdd` to
-     ```bash
+     ```python
      import cdd.gmp as cdd
      ```
   - In the file `mathtools.py`, modify the function `FindStateConeFacets` to the following:
-     ```bash
+     ```python
     def FindStateConeFacets(S):
         S = np.array([[Rational(x).limit_denominator() for x in row] for row in S])
         C = cdd.matrix_from_array(S.T)
@@ -53,7 +53,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
         return H_S
      ```
   - In the file `mathtools.py`, modify the function `FindEffectConeFacets` to the following:
-     ```bash
+     ```python
     def FindEffectConeFacets(E):
         E = np.array([[Rational(x).limit_denominator() for x in row] for row in E])
         C = cdd.matrix_from_array(E.T)
@@ -64,7 +64,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
      ```
      These steps ensure that the polytope description is done symbolically, increasing stability at the expense of performance.
    - In the file `simplexEmbedding.py`, modify the function `SimplicialConeEmbedding` to the following:
-     ```bash
+     ```python
       def SimplicialConeEmbedding(H_S, H_E, accessibleFramentBornRule, depolarizingMap):
           H_S = np.array(H_S, dtype=float)
           H_E = np.array(H_E, dtype=float)
@@ -104,7 +104,7 @@ Additionally, it requires the implementation of the Linear Program introduced in
 The main functionality of the code is the function `Minimalpreps`, estimating the minimal number of randomly sampled preparations over a quantum system such that typicality of contextuality reaches a value above 99% in prepare-and-measure scenarios. It takes as input the number of randomly sampled measurements `m`; the dimension of the Hilbert space `d`; the `upperbound` and `lowerbound` in purity of the states/sharpness of measurements that can be sampled; a boolean variable `pure_meas` that decides whether the sampled measurements are projective measurements or POVMs; the number of `iterations` to be sampled over; and an optional variable `num_workers`, related to the multiprocessing of the typicality functions.
 
 Example usage:
-```bash
+```python
 import typicalityOfContextuality as tp
 
 m = 20
@@ -119,10 +119,10 @@ tp.Minimalpreps(m, d, upperbound, lowerbound, pure_meas, iterations, num_workers
 ```
 
 Returning:
-```
+```console
 Processing (n=4, m=20, dim=2): 100%|##########| 200/200 [15:35<00:00,  4.68s/it]  
 Processing (n=5, m=20, dim=2): 100%|##########| 200/200 [16:35<00:00,  4.98s/it]
-
+Processing (n=6, m=20, dim=2): 100%|##########| 200/200 [16:52<00:00,  5.06s/it]  
 ```
 
 In general, the function `Parallel_Typicality` can be used in a similar way to directly estimate the typicality of contextuality for a given number of preparations and measurements over a finite number of iterations. `Parallel_Typicality_fixed` will assess the same ratio, but for a given number of random preparations and a fixed number of fixed and equally distributed projective measurements over the Bloch sphere.
