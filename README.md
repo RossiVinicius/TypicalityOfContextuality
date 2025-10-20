@@ -105,25 +105,43 @@ The main functionality of the code is the function `Minimalpreps`, estimating th
 
 Example usage:
 ```python
-import typicalityOfContextuality as tp
+In[1]: import typicalityOfContextuality as tp
 
-m = 20
-d = 2
-upperbound = 1
-lowerbound = 0
-pure_meas = True
-iterations = 10**6
-num_workers = 200
+In[2]: m = 20
+       d = 2
+       upperbound = 1
+       lowerbound = 0
+       pure_meas = True
+       iterations = 10**6
+       num_workers = 200
 
-tp.Minimalpreps(m, d, upperbound, lowerbound, pure_meas, iterations, num_workers)
+In[3]: tp.Minimalpreps(m, d, upperbound, lowerbound, pure_meas, iterations, num_workers)
 ```
 
 Returning:
 ```console
 Processing (n=4, m=20, dim=2): 100%|##########| 200/200 [15:35<00:00,  4.68s/it]  
 Processing (n=5, m=20, dim=2): 100%|##########| 200/200 [16:35<00:00,  4.98s/it]
-Processing (n=6, m=20, dim=2): 100%|##########| 200/200 [16:52<00:00,  5.06s/it]  
+Processing (n=6, m=20, dim=2): 100%|##########| 200/200 [16:52<00:00,  5.06s/it]
+Processing (n=7, m=20, dim=2): 100%|##########| 200/200 [17:07<00:00,  5.13s/it]
+Processing (n=8, m=20, dim=2): 100%|##########| 200/200 [17:20<00:00,  5.20s/it]
+Processing (n=9, m=20, dim=2): 100%|##########| 200/200 [17:38<00:00,  5.29s/it]
+Processing (n=10, m=20, dim=2): 100%|##########| 200/200 [17:58<00:00,  5.39s/it]
+Processing (n=11, m=20, dim=2): 100%|##########| 200/200 [18:25<00:00,  5.53s/it]
+Processing (n=12, m=20, dim=2): 100%|##########| 200/200 [18:57<00:00,  5.69s/it]
+Processing (n=13, m=20, dim=2): 100%|##########| 200/200 [19:30<00:00,  5.85s/it]
+Processing (n=14, m=20, dim=2): 100%|##########| 200/200 [20:04<00:00,  6.02s/it]
+Processing (n=15, m=20, dim=2): 100%|##########| 200/200 [21:00<00:00,  6.30s/it]
+Processing (n=16, m=20, dim=2): 100%|##########| 200/200 [23:30<00:00,  7.05s/it]
+Out[3]: 16
 ```
+
+Sometimes, several warnings such as the following will appear during a batch of processes:
+```console
+warnings.warn(
+path/cvxpy/problems/problem.py:1504: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+```
+The functions are already equipped to handle inaccuracies (for instance, discarding scenarios that should yield ```r = 0``` with function ```SimplexEmbedding``` but produce something else, or scenarios that yield ```r > 1``` for any reason), but tuning the solver settings can help avoid the warnings.
 
 In general, the function `Parallel_Typicality` can be used in a similar way to directly estimate the typicality of contextuality for a given number of preparations and measurements over a finite number of iterations. `Parallel_Typicality_fixed` will assess the same ratio, but for a given number of random preparations and a fixed number of fixed and equally distributed projective measurements over the Bloch sphere.
 
