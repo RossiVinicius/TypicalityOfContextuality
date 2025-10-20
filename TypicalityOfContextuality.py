@@ -691,7 +691,7 @@ def wilson_score_interval(successes: int,
     """
     Estimates Wilson score interval.
     
-    Implements the Wilson score interval (without continuity correction)
+    Implements the Wilson score interval with continuity correction
     for an observed number of successes in a number of Bernoulli trials.
 
     Parameters
@@ -717,13 +717,10 @@ def wilson_score_interval(successes: int,
 
     Notes
     -----
-    - The Wilson interval is numerically more accurate than the
-      Wald (naive) interval, especially for small `trials` or proportions
-      near 0 or 1.
-    - If `trials == 0`, the function returns (0.0, 0.0, 1.0) as a convention:
+    - If `trials == 0`, the function returns (0.0, 0.0) as a convention:
       no data -> no information (p_hat=0, full interval).
     - Supported `confidence` values by lookup: 0.80, 0.90, 0.95, 0.975, 0.99, 0.995.
-      For other confidence levels you may pass `z_value` directly.
+      For other confidence levels, the user may pass `z_value` directly.
     """
     # Quick validation
     if iterations < 0 or successes < 0:
@@ -732,21 +729,21 @@ def wilson_score_interval(successes: int,
         raise ValueError("`successes` cannot exceed `iterations`.")
     if iterations == 0:
         # No iterations -> undefined p_hat; return convention (0, full interval)
-        return 0.0, 0.0, 1.0
+        return 0.0, 0.0
 
     # Observed frequence
     p_hat = successes / iterations
 
     # Determine z: either provided or lookup common values
     if z_value is None:
-        # lookup table for common confidence levels (two-sided)
+        # lookup table for common confidence levels
         z_lookup = {
-            0.80: 1.281551565545,   # ~ z_{0.90}
-            0.90: 1.644853626951,   # ~ z_{0.95}
-            0.95: 1.959963984540,   # ~ z_{0.975}
-            0.975: 1.959963984540,  # alternative mapping (two-sided 97.5%)
-            0.99: 2.575829303548,   # ~ z_{0.995}
-            0.995: 2.807033768345
+            0.80: 1.281551565545,   # ~ z_{0.80}
+            0.90: 1.644853626951,   # ~ z_{0.90}
+            0.95: 1.959963984540,   # ~ z_{0.95}
+            0.975: 1.959963984540,  # ~ (two-sided 0.975)
+            0.99: 2.575829303548,   # ~ z_{0.99}
+            0.995: 2.807033768345   # ~ z_{0.995}
         }
         try:
             z = z_lookup[confidence]
@@ -760,9 +757,7 @@ def wilson_score_interval(successes: int,
     else:
         z = float(z_value)
 
-    # Wilson score interval formula without continuity correction:
-    # center = (p_hat + z^2/(2N)) / (1 + z^2/N)
-    # half_width = z * sqrt( (p_hat*(1-p_hat)/N) + z^2/(4 N^2) ) / (1 + z^2/N)
+    #Wilson formula with continuity correction
     center = (p_hat + z**2 / (2.0 * iterations)) / (1.0 + z**2 / iterations)
     half = (z * math.sqrt((p_hat * (1.0 - p_hat) / iterations) + (z**2 / (4.0 * iterations**2)))) / (1.0 + z**2 / iterations)
 
@@ -772,7 +767,7 @@ def wilson_score_interval(successes: int,
 
 def Typicality_POM(iterations: int) -> tuple:
     """
-    Estimate average success rate advantage, variance, and typicality for a fixed set of 8 optimal qubit states and 3 optimal measurements rotated by random unitaries.
+    Estimate average success rate, variance, average robustness of contextuality and typicality for a fixed set of 8 optimal qubit states and 3 optimal measurements rotated by random unitaries.
 
     For each iteration, the function applies a random Haar-distributed
     unitary to the measurements, computes the robustness of contextuality,
@@ -786,9 +781,11 @@ def Typicality_POM(iterations: int) -> tuple:
     Returns
     -------
     av : float
-        Average advantage over classical success rate.
+        Average success rate.
     sigma : float
-        Standard deviation of the statistic.
+        Standard deviation of the average success rate.
+    avr: float
+        Average robustness of contextuality.
     t : float
         Typicality.
 
@@ -817,6 +814,7 @@ def Typicality_POM(iterations: int) -> tuple:
     
     s1=0;
     s2=0;
+    r1=0;
     count=0;
     for i in range(iterations):
         #Apply random Haar-distributed unitary (for rotated POVM)
@@ -829,14 +827,17 @@ def Typicality_POM(iterations: int) -> tuple:
         r=SimplexEmbedding(s,e,u,mms);
         if r>=1e-7: #If robustness of contextuality is above threshold
             sample= 0.5*(4/3-r)/(1-r); #Compute success rate advantage from r
+            sample2= r
             s1+=sample
             s2+=sample**2
+            r1+=sample2
             count+=1
             
     # Compute average, variance, and typicality
     av=s1/iterations
     av2=s2/iterations
+    avr=r1/iterations
     sigma=np.sqrt(av2-av**2);
     t=count/iterations
     
-    return av, sigma, t
+    return av, sigma, avr, t
