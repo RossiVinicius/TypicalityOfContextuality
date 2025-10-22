@@ -146,7 +146,7 @@ The functions are already equipped to handle inaccuracies (for instance, discard
 In general, the function `Parallel_Typicality` can be used in a similar way to directly estimate the typicality of contextuality for a given number of preparations and measurements over a finite number of iterations. `Parallel_Typicality_fixed` will assess the same ratio, but for a given number of random preparations and a fixed number of fixed and equally distributed projective measurements over the Bloch sphere.
 
 # Code structure
-The detailed description of each function is provided in the docstrings. The repository contains a single file `typicalityOfContextuality.py`, which is divided into 4 sections.
+The detailed description of each function is provided in the docstrings. The repository contains a zip file `data.zip` containing raw text files with the data generated in the paper. The main file is `typicalityOfContextuality.py`, which is divided into 4 sections:
 ## Random sampling routines
 Routines employ functions from the `qutip` library to randomly generate Hilbert space vectors, density operators and unitary rotations. It also provides the equally distributed effects for `Parallel_Typicality_fixed`.
 ## Typicality routines
