@@ -1,5 +1,5 @@
 # Typicality of generalised contextuality in quantum prepare-and-measure scenarios
-This repository contains the Python code accompanying the manuscript "How typical is contextuality?" [].
+This repository contains the Python code accompanying the manuscript "How typical is contextuality?" <[arXiv:2510.20722](https://arxiv.org/abs/2510.20722)>.
 
 The code provides tools for studying how often quantum contextuality is present in prepare-and-measure scenarios by performing large-scale numerical sampling of random quantum states and measurements, and assessing their simplex embeddability.
 
