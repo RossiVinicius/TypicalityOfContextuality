@@ -11,12 +11,13 @@ motivation and technicalities.
 __license__ = "MIT"
 __author__ = "Vinicius P Rossi"
 __email__ = "prettirossi.vinicius@gmail.com"
-__version__ = "1.0"
+__version__ = "1.1"
 
 
 import numpy as np
 import time
 import math
+import itertools
 
 #For randomly sampling states, effects and unitaries
 import qutip as qt 
@@ -65,8 +66,6 @@ def random_density_matrix(dim: int, upperbound: float, lowerbound: float, pure: 
       operators will not be uniform. For narrow intervals
       [lowerbound, upperbound] we recommend other sampling methods (such
       as Markov Chain Monte Carlo).
-    - The number of iterations in the rejection method for sampling
-      mixed operators was chosen arbitrarily and can be adjusted.
     """
     #Sampling pure density operators
     if pure:
@@ -75,54 +74,120 @@ def random_density_matrix(dim: int, upperbound: float, lowerbound: float, pure: 
         return dm_final
     #Sampling mixed density operators
     else:
-        for _ in range(10**5): #The loop must be adjusted for a larger number if [lowerbound,upperbound] is too narrow
+        accepted = False
+        while not accepted:
             dm = qt.rand_dm(dim, distribution="ginibre").full()  #Samples a ranndom full-rank density operator using qutip
             # Clean numerical noise to ensure hermiticity
-            dm_clean = np.real(dm) + 1j * np.where(np.abs(np.imag(dm)) < 1e-7, 0, np.imag(dm)) #1e-7 is arbitrarily chosen
+            dm_final = np.real(dm) + 1j * np.where(np.abs(np.imag(dm)) < 1e-7, 0, np.imag(dm)) #1e-7 is arbitrarily chosen
             purity = np.trace(dm_clean @ dm_clean).real 
-            if purity<=upperbound and purity>=lowerbound: #Rejection method: if purity is not within the interval, repeat
-                return dm_clean
-        
-        raise RuntimeError(f"Failed to generate DM with purity between {lowerbound} and {upperbound} in 10**5 tries.")
-    
-def random_effects(dim: int, n: int, upperbound: float, lowerbound: float, pure: bool) -> np.ndarray:
+            if purity <= upperbound and purity >= lowerbound: #Rejection method: if purity is not within the interval, repeat
+                accepted = True   
+                
+        return dm_final
+ 
+def random_unitary(dim: int) -> np.ndarray:
     """
-    Generate a set of random quantum binary measurements.
+    Generate a Haar-random dim x dim unitary matrix using the Mezzadri algorithm.
+
+    Steps (dimension-independent):
+        1. Draw a dim x dim complex Ginibre matrix with i.i.d. complex normals.
+        2. Perform QR decomposition: Z = Q R.
+        3. Fix the phases using the diagonal of R so Q becomes Haar-distributed.
+        4. Convert to Qobj.
+        5. Optionally remove global phase so det(U) = 1 (returns SU(d)).
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the unitary.
+
+    Returns
+    -------
+    Uq : array
+        A dim x dim Haar-random unitary in SU(d).
+        Shape = (dim, dim)
+    """
+
+    # Ginibre matrix (complex Gaussian)
+    Z = (np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim)) / np.sqrt(2)
+    # R decomposition
+    Q, R = np.linalg.qr(Z)
+    # Fix phases so Q is Haar distributed
+    diagR = np.diag(R)
+    phases = diagR / np.abs(diagR)
+    U = Q @ np.diag(np.conj(phases))
+    # Remove global phase and enforce det(U) = 1 (SU(d))
+    det = np.linalg.det(U)
+    Uq = U * (det ** (-1.0/dim))
+
+    return Uq
+ 
+def random_effects(dim: int, m: int, upperbound: float, lowerbound: float, pure: bool, outcome: int = 2) -> np.ndarray:
+    """
+    Generate a set of random quantum unsharp measurements.
 
     An effect here is assumed to be a positive semidefinite operator ``E``
-    satisfying 0 ≤ E ≤ I. For each random effect E, its complement
-    I - E is also included.
+    satisfying 0 <= E <= I. For each POVM, its elements E sum up to I.
 
     Parameters
     ----------
     dim : int
         The dimension of the Hilbert space over which the measurement is performed.
-    n : int
+    m : int
         The number of measurements to be sampled.  
-        Note: 2*n total effects will be output.
+        Note: 2*m total effects will be output.
     upperbound : float
         A real number between 0 and 1 which is the upper bound in sharpness
-        of the operator (if sampling projectors, any value can be assigned).
+        of the POVM (if sampling projectors, any value can be assigned).
     lowerbound : float
         A real number between 0 and 1 which is the lower bound in sharpness
-        of the operator (if sampling projectors, any value can be assigned).
+        of the POVM (if sampling projectors, any value can be assigned).
     pure : bool
         If True, sample projectors; otherwise, sample POVM elements.
+    outcome : int
+        Number of outcomes in case of POVM sampling. Automatically set to
+        dichotomic POVMs (outcome = 2).
 
     Returns
     -------
     effects : np.ndarray
         An array of randomly sampled POVM elements with sharpness between
         ``lowerbound`` and ``upperbound``, together with their complementary
-        effects. Shape = (2*n, dim, dim).
+        effects. Shape = (m*outcomes, dim, dim).
+        
+    Notes
+    -----
+        - The sharpness of a POVM ``(E1,...,Ek)`` is calculated as the sum
+        of ``np.trace(Ei @ Ei)`` weigthed by the dimension ``d``. If the set
+        constitutes a projective measurement, ``k == d`` and the sharpness is
+        equal to 1.
+        - Similarly to states, bounding the sharpness implies on non-uniform
+        sampling. For narrow intervals [lowerbound, upperbound] we recommend
+        other sampling methods.
     """
     effects=[];
-    for i in range(n):
-        eff=random_density_matrix(dim, upperbound, lowerbound,pure);#Samples POVM element 0 ≤ eff ≤ I
-        effects.append(eff);
-        effcomp=np.eye(dim)-eff; #Includes the normalising counterpart
-        effects.append(effcomp);
-    return np.array(effects);
+    rng = np.random.default_rng()
+    for i in range(m):
+        if pure:
+            ONB = [np.diag(np.eye(dim)[i]) for i in range(dim)]
+            U = random_unitary(dim)
+            eff = [U @ e @ np.conjugate(U).T for e in ONB]
+            effects.append(eff)
+        else:
+            accepted = False
+            while not accepted:
+                G = rng.normal(size=(outcome,dim,dim))+1j*rng.normal(size=(outcome,dim,dim))
+                POVM = np.einsum('kij,klj->kil',G,G.conj())
+                S = POVM.sum(axis=0)
+                eigvals, eigvecs = np.linalg.eigh(S)
+                S_inv_sqrt = eigvecs @ np.diag(1.0 / np.sqrt(eigvals)) @ eigvecs.conj().T
+                normPOVM = np.einsum('ab,kbc,cd->kad', S_inv_sqrt, POVM, S_inv_sqrt)
+                traces = np.einsum('kij,kji->k', normPOVM, normPOVM)
+                sharpness = np.real(traces.sum()) / dim
+                if lowerbound <= sharpness <= upperbound:
+                    effects.append(normPOVM)
+                    accepted = True
+    return np.array(effects).reshape(-1,dim,dim)
 
 def fixed_effects() -> np.ndarray:
     """
@@ -146,7 +211,7 @@ def fixed_effects() -> np.ndarray:
 
     Notes
     -----
-    These effects lie on a discrete polar–azimuthal grid of the Bloch sphere.
+    These effects lie on a discrete polar-azimuthal grid of the Bloch sphere.
     Some of them are repeated, summing up to 168 distinct effects.
     """
     effects=[];
@@ -156,40 +221,7 @@ def fixed_effects() -> np.ndarray:
             eff=np.outer(eff, eff.conj()); #Construct the corresponding density operator.
             effects.append(eff);
     return np.array(effects)
-
-
-def random_unitary() -> qt.Qobj:
-    """
-    Generate a random 2×2 unitary matrix distributed according to the Haar measure.
-
-    A Ginibre ensemble matrix is sampled and processed via the Mezzadri
-    QR decomposition method:
-
-        1. Draw a 2×2 complex matrix with i.i.d. normal entries (Ginibre matrix).
-        2. Perform QR decomposition; Q is unitary up to phases.
-        3. Normalize phases from R's diagonal to ensure proper Haar sampling.
-        4. Convert to QuTiP Qobj and remove the global phase so det(U) = 1.
-
-    Returns
-    -------
-    Uq : qt.Qobj
-        A 2×2 unitary operator in QuTiP format, with det(U) = 1 (i.e. in SU(2)).
-    """
-    # Ginibre: complex normal entries
-    Z = (np.random.randn(2,2) + 1j*np.random.randn(2,2)) / np.sqrt(2.0)
-    Q, R = np.linalg.qr(Z)
-    # Make diagonal of R have unit modulus: get phases
-    diagR = np.diag(R)
-    phases = diagR / np.abs(diagR)
-    # Multiply Q by conj(phases) on the right to fix phases
-    Lambda = np.diag(np.conj(phases))
-    U = Q @ Lambda
-    # Convert to qutip Qobj unitary
-    Uq = qt.Qobj(U)
-    # Ensure det(U)=1 (SU(2)) by removing global phase:
-    det = np.linalg.det(U)
-    Uq = Uq * (det ** (-0.5))  # remove a global phase so det=1
-    return Uq
+    
 
 ############################ Typicality routines ####################################
 
@@ -228,7 +260,7 @@ def Typicality_oneshot(n: int, m: int, dim: int, upperbound: float, lowerbound: 
         Classification flag based on simplex embedding:
         - 2 : Assessment failed (r is None or exceeds 1).
         - 1 : Scenario is non-embeddable (r > 1e-7).
-        - 0 : Scenario is embeddable (r ≤ 1e-7).
+        - 0 : Scenario is embeddable (r <= 1e-7).
 
     Notes
     -----
@@ -249,7 +281,7 @@ def Typicality_oneshot(n: int, m: int, dim: int, upperbound: float, lowerbound: 
     if (r==None or r>1): #If LP returns incorrect value of robustness of contextuality for any reason
         count=2
     else:
-        count=int(r>1e-7) #count = 0 if r is below threshold and 1 otherwise
+        count=int(r>1e-6) #count = 0 if r is below threshold and 1 otherwise
         #if r<=1e-7:
         #    print(states,effects) #Debug
     return count
@@ -291,7 +323,7 @@ def Typicality_worker(args: tuple, iterations_per_worker: int) -> tuple:
             count += r # r is 0 or 1 in valid cases
     return count, total
 
-def Parallel_Typicality(n: int, m: int, dim: int, upperbound: float, lowerbound: float, pure_preps: bool, pure_meas: bool, total_iterations: int, num_workers: int = None) -> float:
+def Parallel_Typicality(n: int, m: int, dim: int, upperbound: float, lowerbound: float, pure_preps: bool, pure_meas: bool, total_iterations: int, num_workers: int = 200) -> float:
     """
     Parallelised estimation of typicality by distributing trials across multiple workers.
 
@@ -383,7 +415,7 @@ def Fixed_typicality_oneshot(n: int, upperbound: float, lowerbound: float, pure:
         Classification flag based on simplex embedding assessment:
         - Returns 2 if the assessment failed (None or r > 1).
         - Returns 1 if r > 1e-7.
-        - Returns 0 if r ≤ 1e-7.
+        - Returns 0 if r <= 1e-7.
 
     Notes
     -----
@@ -430,7 +462,7 @@ def Typicality_worker_fixed(args: tuple, iterations_per_worker: int) -> tuple:
         Classification flag based on simplex embedding:
         - 2 : Assessment failed (r is None or exceeds 1)
         - 1 : Scenario is non-embeddable (r > 1e-7)
-        - 0 : Scenario is embeddable (r ≤ 1e-7)
+        - 0 : Scenario is embeddable (r <= 1e-7)
 
     Notes
     -----
@@ -504,7 +536,7 @@ def Parallel_Typicality_fixed(n: int, upperbound: float, lowerbound: float, pure
 
 #################### Tool for assessing minimal preparations ##################
 
-def Minimalpreps(m: int, dim: int, upperbound: float, lowerbound: float, pure_meas: bool, iterations: int, num_workers: int = None) -> int:
+def Minimalpreps(m: int, dim: int, upperbound: float, lowerbound: float, pure_meas: bool, iterations: int, num_workers: int = 200) -> int:
     """
     Compute the minimal number of random mixed states required for typicality > 0.99.
 
@@ -538,11 +570,12 @@ def Minimalpreps(m: int, dim: int, upperbound: float, lowerbound: float, pure_me
       compensated by increasing the number of measurements `m`.
     """
     minimal_preps=0
-    n=4
+    n=5
     while minimal_preps == 0:
             t=Parallel_Typicality(n, m, dim, upperbound, lowerbound, False, pure_meas, iterations)
             if t > 0.99:
                 minimal_preps = n
+            n+=1
     return minimal_preps
 
 ###################### Typicality analysis in the paper ########################
@@ -636,9 +669,9 @@ def Typicality_minimalpreps(upperbound: float, pure_meas: bool, docname: str):
     -----
     - The `upperbound` must be greater than 0.9.
     """
-    minimal_preps=np.zeros(4);
-    lowerbound_values=np.array([0, 0.5, 0.7, 0.9])
-    for k in range(4):
+    minimal_preps=np.zeros(3);
+    lowerbound_values=np.array([0.5, 0.7, 0.9])
+    for k in range(3):
         minimal_preps[k] = Minimalpreps(20, 2, upperbound, lowerbound_values[k], pure_meas, 10**6)
     np.savetxt(docname, np.column_stack((lowerbound_values, minimal_preps)), header="LowerBound  MinimalPreps", fmt="%.6f")
     
@@ -786,8 +819,14 @@ def Typicality_POM(iterations: int) -> tuple:
         Standard deviation of the average success rate.
     avr: float
         Average robustness of contextuality.
+    sigmar : float
+        Standard deviation of the average robustness of contextuality
+    av_op : float
+        Average operational success rate (maximised over permutation of measurements)
+    sigma_op : float
+        Standard deviation of the average operational success rate
     t : float
-        Typicality.
+        Typicality of contextuality.
 
     Notes
     -----
@@ -812,32 +851,67 @@ def Typicality_POM(iterations: int) -> tuple:
     #Define fixed optimal measurements for the task
     POM_eff=e=0.5*np.array([[[2,0],[0,0]],[[0,0],[0,2]],[[1,1],[1,1]],[[1,-1],[-1,1]],[[1,-1j],[1j,1]],[[1,1j],[-1j,1]]])
     
+    ops1=0;
+    ops2=0;
     s1=0;
     s2=0;
-    r1=0;
+    r1=0
+    r2=0
     count=0;
     for i in range(iterations):
         #Apply random Haar-distributed unitary (for rotated POVM)
-        U=qt.rand_unitary(2, distribution="haar").full() #Comment if needed.
+        U=random_unitary(2) #Comment if needed.
         effects = [U @ e @ np.conj(U).T for e in POM_eff] #Analysis for rotated measurements. Comment if needed.
         #Alternatively:
         #effects = random_effects(2, 3, 1, 0, True) #Uncomment if analysis for projective measurements
         #effects = random_effects(2, 3, 1, 0, False); #Uncomment if analysis for random POVMs
+        meas = [(effects[0], effects[1]), (effects[2], effects[3]), (effects[4], effects[5])]
+    
+        # There are 3! permutations and 2^3 sign flips
+        perms = list(itertools.permutations(range(3)))
+        flips = list(itertools.product([1, -1], repeat=3))
+        
+        best_s = 0.0
+        for perm in perms:
+            for flip in flips:
+                s_sum = 0.0
+                for x in range(8):
+                    bits = np.array(list(map(int, f"{x:03b}")))  # [x1,x2,x3]
+                    for y in range(3):
+                        # Which physical measurement corresponds to logical bit y
+                        phys_y = perm[y]
+                        Eplus, Eminus = meas[phys_y]
+                        # Flip outcome label if needed
+                        if flip[y] == -1:
+                            Eplus, Eminus = Eminus, Eplus
+                        # Success prob for this (x,y)
+                        E_corr = Eplus if bits[y] == 1 else Eminus
+                        s_sum += np.real(np.trace(states[x] @ E_corr))
+                s_avg = s_sum / (8 * 3)
+                best_s = max(best_s, s_avg)
         s,e,u,mms=fromListOfMatrixToListOfVectors(states, effects);
+        ops1+=best_s
+        ops2+=best_s**2
         r=SimplexEmbedding(s,e,u,mms);
-        if r>=1e-7: #If robustness of contextuality is above threshold
-            sample= 0.5*(4/3-r)/(1-r); #Compute success rate advantage from r
-            sample2= r
+        if r>1e-7:
+            sample= 0.5*(4/3-r)/(1-r);
+            rsample = r
             s1+=sample
             s2+=sample**2
-            r1+=sample2
+            r1+=rsample
+            r2+=rsample**2
             count+=1
-            
-    # Compute average, variance, and typicality
-    av=s1/iterations
-    av2=s2/iterations
-    avr=r1/iterations
+        else:
+            s1+=2/3;
+            s2+=(2/3)**2;
+    av_op=ops1/10**6
+    av2_op=ops2/10**6
+    sigma_op=np.sqrt(av2_op-av_op**2)
+    av=s1/10**6
+    av2=s2/10**6
     sigma=np.sqrt(av2-av**2);
-    t=count/iterations
-    
-    return av, sigma, avr, t
+    avr1=r1/10**6
+    avr2=r2/10**6
+    sigmar=np.sqrt(avr2-avr1**2)
+    t=count/10**6
+    return av, sigma, avr1, sigmar, av_op, sigma_op, t
