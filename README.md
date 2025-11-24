@@ -148,7 +148,7 @@ In general, the function `Parallel_Typicality` can be used in a similar way to d
 # Code structure
 The detailed description of each function is provided in the docstrings. The repository contains a zip file `data.zip` containing raw text files with the data generated in the paper. The main file is `typicalityOfContextuality.py`, which is divided into 4 sections:
 ## Random sampling routines
-Routines employ functions from the `qutip` library to randomly generate Hilbert space vectors, density operators and unitary rotations. It also provides the equally distributed effects for `Parallel_Typicality_fixed`.
+Routines employ functions from `numpy` and `qutip` libraries to randomly generate Hilbert space vectors, density operators and unitary rotations. It also provides the equally distributed effects for `Parallel_Typicality_fixed`.
 ## Typicality routines
 Provides a collection of routines that build up to `Parallel_Typicality` and `Parallel_Typicality_fixed`. These functions employ `multiprocessing` and `tqdm` functionalities.
 ## Tool for assessing minimal preparations
