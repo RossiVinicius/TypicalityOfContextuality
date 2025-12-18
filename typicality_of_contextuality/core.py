@@ -23,9 +23,9 @@ import itertools
 import qutip as qt 
 
 #For assessments of contextuality
-#Available at https://github.com/pjcavalcanti/SimplexEmbeddingGPT
-from preprocessing import fromListOfMatrixToListOfVectors
-from simplexEmbedding import SimplexEmbedding
+#Vendored and modified from https://github.com/pjcavalcanti/SimplexEmbeddingGPT
+from .preprocessing import fromListOfMatrixToListOfVectors
+from .simplexEmbedding import SimplexEmbedding
 
 #For multiprocessing of typicality frequencies
 import multiprocessing 
