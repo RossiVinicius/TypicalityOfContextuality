@@ -1,5 +1,15 @@
+"""
+This file is vendored and modified from:
+https://github.com/RossiVinicius/SimplexEmbeddingGPT-v2
+
+Original authors:
+P. J. Cavalcanti, V. P. Rossi
+
+License: MIT
+"""
+
 import numpy as np
-import cdd
+import cdd.gmp as cdd
 
 
 def rref(B, tol=1e-8, debug=False):
@@ -97,12 +107,13 @@ def FindStateConeFacets(S):
         An array listing the facets of the positive cone defined by the input matrix S.
         shape = (number of facets, dimension of the space spanned by states in the accessible GPT fragment)
     """
-    
+
+    S = np.array([[Rational(x).limit_denominator() for x in row] for row in S])
     C = cdd.matrix_from_array(S.T)
     C.rep_type = cdd.RepType.GENERATOR
     H_S=cdd.copy_inequalities(cdd.polyhedron_from_matrix(C))
     H_S=np.array(H_S.array)
-    H_S[np.abs(H_S) < 1e-6] = 0
+    H_S[np.abs(H_S) < 1e-8] = 0
     return H_S
 
 
@@ -120,6 +131,9 @@ def FindEffectConeFacets(E):
         shape = (dimension of the space spanned by effects in the accessible GPT fragment, number of facets)
     """
     
+    E = np.array([[Rational(x).limit_denominator() for x in row] for row in E])
     C = cdd.matrix_from_array(E.T)
     C.rep_type = cdd.RepType.INEQUALITY
-    return np.array(cdd.copy_generators(cdd.polyhedron_from_matrix(C)).array).T
+    H_E=np.array(cdd.copy_generators(cdd.polyhedron_from_matrix(C)).array).T
+    H_E[np.abs(H_E) < 1e-8] = 0    
+    return H_E
