@@ -3,7 +3,7 @@ from scipy.sparse import csr_matrix
 import numpy as np
 import cvxpy as cp
 
-from math_tools import rref, FindStateConeFacets, FindEffectConeFacets
+from .math_tools import rref, FindStateConeFacets, FindEffectConeFacets
 
 
 def DefineAccessibleGPTFragment(statesOrEffects):
@@ -62,22 +62,37 @@ def SimplicialConeEmbedding(H_S, H_E, accessibleFragmentBornRule, depolarizingMa
         - robustness (float): The minimum amount of noise such that the depolarizing map causes a simplicial cone embedding to exist. 
         - sigma (np.ndarray): The sigma matrix obtained from the optimization problem.
     """
+    H_S = np.array(H_S, dtype=float)
+    H_E = np.array(H_E, dtype=float)
     robustness, sigma = cp.Variable(nonneg=True), cp.Variable(
-        shape=(H_E.shape[1], H_S.shape[0]), nonneg=True
-    )
+         shape=(H_E.shape[1], H_S.shape[0]), nonneg=True
+     )
 
     problem = cp.Problem(
-        cp.Minimize(robustness),
-        [
-            robustness * depolarizingMap
-            + (1 - robustness) * accessibleFragmentBornRule
-            - H_E @ sigma @ H_S
-            == 0
-        ],
-    )
+         cp.Minimize(robustness),
+         [
+             robustness * depolarizingMap
+             + (1 - robustness) * accessibleFramentBornRule
+             - H_E @ sigma @ H_S
+             == 0
+         ],
+     )
 
-    problem.solve()
-    return robustness.value, sigma.value
+     try:
+         # Try solving with ECOS first
+         problem.solve(solver=cp.ECOS, verbose=False)
+         # If ECOS fails, try CLARABEL as a fallback
+         if problem.status in ["infeasible", "unbounded"]:
+             problem.solve(solver=cp.CLARABEL, verbose=False)
+     except SolverError:
+         # If both solvers fail, return robustness=2 and sigma=None (or any placeholder)
+         return 2, None
+
+     #Check if the solution is valid (robustness should be between 0 and 1)
+     if problem.status not in ["optimal", "optimal_inaccurate"] or robustness.value is None:
+         return 2, None  # Invalid solution, return default
+     else:
+         return robustness.value, sigma.value
 
 
 def SimplexEmbedding(states, effects, unit, mms, debug=False):
@@ -94,10 +109,7 @@ def SimplexEmbedding(states, effects, unit, mms, debug=False):
     debug (bool, optional): Flag to print debug information. Default is False.
 
     Returns:
-    tuple: A tuple containing:
-        - robustness (float): The robustness value.
-        - ResponseFunction (np.ndarray): The response function matrix.
-        - EpistemicStates (np.ndarray): The epistemic states matrix.
+    robustness (float): The robustness value.
     """
 
     inclusion_S, projection_S, accessibleFragmentStates = DefineAccessibleGPTFragment(
@@ -119,79 +131,4 @@ def SimplexEmbedding(states, effects, unit, mms, debug=False):
     robustness, sigma = SimplicialConeEmbedding(
         H_S, H_E, accessibleFragmentBornRule, depolarizingMap
     )
-
-    # Trivial factorization of the matrix sigma:
-    alpha = H_S
-    beta = H_E @ sigma
-
-    tau_S = np.array(
-        [
-            alpha[i, :] * (accessibleFragmentUnit @ beta[:, i])
-            for i in range(alpha.shape[0])
-            if not np.isclose((accessibleFragmentUnit @ beta[:, i]), 0)
-        ]
-    )
-    tau_E = np.array(
-        [
-            beta[:, i] / (accessibleFragmentUnit @ beta[:, i])
-            for i in range(beta.shape[1])
-            if not np.isclose((accessibleFragmentUnit @ beta[:, i]), 0)
-        ]
-    ).T
-
-    ResponseFunction = tau_E.T @ inclusion_E.T @ effects
-    EpistemicStates = tau_S @ inclusion_S.T @ states
-
-    if debug:
-        print(
-            f"""
-            
-{inclusion_S.shape = },
-{inclusion_E.shape = },
-{H_S.shape = }
-{H_E.shape = },
-{accessibleFragmentBornRule.shape = },
-
-{effects.shape = },
-{inclusion_E.shape = },
-{tau_E.shape = },
-
-{tau_S.shape = },
-{inclusion_S.shape = },
-{states.shape = },
-
-{robustness = },
-{ResponseFunction.shape = },
-{EpistemicStates.shape = },
-
-Tau_E =
-{tau_E},
-Tau_S =
-{tau_S},
-
-effects =
-{effects},
-states =
-{states},
-
-Inc_E =
-{inclusion_E},
-Inc_S =
-{inclusion_S},
-
-{ResponseFunction},
-
-{EpistemicStates},
-"""
-        )
-
-    return robustness, ResponseFunction, EpistemicStates
-
-
-if __name__ == "__main__":
-    from examples import example1
-
-    np.set_printoptions(precision=2, suppress=True)
-
-    states, effects, unit, mms = example1()
-    SimplexEmbedding(states, effects, unit, mms, debug=True)
+    return robustness
