@@ -1,0 +1,19 @@
+[project]
+name = "typicality-of-contextuality"
+version = "0.1.0"
+description = "Typicality of contextuality code"
+readme = "README.md"
+authors = [
+    { name = "Vinicius Rossi" }
+]
+requires-python = ">=3.8"
+
+dependencies = [
+    "numpy",
+    "qutip",
+    "tqdm"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
