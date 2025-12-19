@@ -1,1 +1,9 @@
-from .core import *
+"""
+Typicality of contextuality package.
+
+See core.py for main functionality.
+"""
+
+__version__ = "1.1"
+__author__ = "Vinicius P Rossi"
+__license__ = "MIT"
