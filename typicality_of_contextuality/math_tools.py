@@ -10,6 +10,7 @@ License: MIT
 
 import numpy as np
 import cdd.gmp as cdd
+from fractions import Fraction as Rational
 
 
 def rref(B, tol=1e-8, debug=False):
