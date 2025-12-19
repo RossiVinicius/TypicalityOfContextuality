@@ -323,7 +323,7 @@ def Typicality_worker(args: tuple, iterations_per_worker: int) -> tuple:
             count += r # r is 0 or 1 in valid cases
     return count, total
 
-def Parallel_Typicality(n: int, m: int, dim: int, upperbound: float, lowerbound: float, pure_preps: bool, pure_meas: bool, total_iterations: int, num_workers: int = 200) -> float:
+def Parallel_Typicality(n: int, m: int, dim: int, upperbound: float, lowerbound: float, pure_preps: bool, pure_meas: bool, total_iterations: int, num_workers: int = -1) -> float:
     """
     Parallelised estimation of typicality by distributing trials across multiple workers.
 
@@ -369,7 +369,7 @@ def Parallel_Typicality(n: int, m: int, dim: int, upperbound: float, lowerbound:
     if m < 2:
        raise ValueError(f"Number of measurements m={m} is less than 2. Contextuality requires at least 2 measurements.")
    
-    if num_workers is None:
+    if num_workers==-1:
         num_workers = multiprocessing.cpu_count()
         
     iterations_per_worker = total_iterations//num_workers # Divide the total number of iterations evenly among workers
@@ -481,7 +481,7 @@ def Typicality_worker_fixed(args: tuple, iterations_per_worker: int) -> tuple:
             count += r #r is 0 or 1 in valid cases
     return count, total
 
-def Parallel_Typicality_fixed(n: int, upperbound: float, lowerbound: float, pure: bool, total_iterations: int, num_workers: int = None) -> float:
+def Parallel_Typicality_fixed(n: int, upperbound: float, lowerbound: float, pure: bool, total_iterations: int, num_workers: int = -1) -> float:
     """
     Parallelised estimation of typicality using fixed projectors.
 
@@ -516,7 +516,7 @@ def Parallel_Typicality_fixed(n: int, upperbound: float, lowerbound: float, pure
       are discarded.
     - Uses `tqdm` for progress reporting.
     """
-    if num_workers is None:
+    if num_workers==-1:
         num_workers = multiprocessing.cpu_count()
     
     iterations_per_worker = total_iterations // num_workers # Divide the total number of iterations evenly among workers
@@ -536,7 +536,7 @@ def Parallel_Typicality_fixed(n: int, upperbound: float, lowerbound: float, pure
 
 #################### Tool for assessing minimal preparations ##################
 
-def Minimalpreps(m: int, dim: int, upperbound: float, lowerbound: float, pure_meas: bool, iterations: int, num_workers: int = 200) -> int:
+def Minimalpreps(m: int, dim: int, upperbound: float, lowerbound: float, pure_meas: bool, iterations: int, num_workers: int = -1) -> int:
     """
     Compute the minimal number of random mixed states required for typicality > 0.99.
 
