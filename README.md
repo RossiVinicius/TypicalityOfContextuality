@@ -1,4 +1,4 @@
-# Typicality of generalised contextuality in quantum prepare-and-measure scenarios
+# Typicality of generalised contextuality in quantum prepare-and-measure scenarios (2.0)
 This repository contains the Python code accompanying the manuscript "How typical is contextuality?" <[arXiv:2510.20722](https://arxiv.org/abs/2510.20722)>.
 
 The code provides tools for studying how often quantum contextuality is present in prepare-and-measure scenarios by performing large-scale numerical sampling of random quantum states and measurements, and assessing their simplex embeddability.
@@ -13,8 +13,7 @@ The main features include:
 - Python 3.8+ 
 - Python packages `numpy`, `scipy`, `cvxpy`, `qutip`, `tqdm` and `pycddlib`.
 Note: `pycddlib` requires GMP installed on your system. See the `pycddlib` documentation for installation instructions.
-Note: 
-All functions from the Linear Program introduced in Physical Review Letters 132 (5), 050202 (2024) are included in this repository, vendored from the original SimplexEmbeddingGPT implementation available at <https://github.com/pjcavalcanti/SimplexEmbeddingGPT>. Please consult documentation for clearance.
+Note: All functions from the Linear Program introduced in Physical Review Letters 132 (5), 050202 (2024) are included in this repository, vendored from the original SimplexEmbeddingGPT implementation available at <https://github.com/pjcavalcanti/SimplexEmbeddingGPT>. Please consult documentation for clearance.
 
 # Installation
   1. Clone this repository:
@@ -35,7 +34,7 @@ The main functionality of the code is the function `Minimalpreps`, estimating th
 
 Example usage:
 ```python
-In[1]: import typicalityOfContextuality as tp
+In[1]: import typicality_of_contextuality as tp
 
 In[2]: m = 20
        d = 2
@@ -76,7 +75,7 @@ The functions are already equipped to handle inaccuracies (for instance, discard
 In general, the function `Parallel_Typicality` can be used in a similar way to directly estimate the typicality of contextuality for a given number of preparations and measurements over a finite number of iterations. `Parallel_Typicality_fixed` will assess the same ratio, but for a given number of random preparations and a fixed number of fixed and equally distributed projective measurements over the Bloch sphere.
 
 # Code structure
-The detailed description of each function is provided in the docstrings. The repository contains a zip file `data.zip` containing raw text files with the data generated in the paper. The main file is `typicalityOfContextuality.py`, which is divided into 4 sections:
+The detailed description of each function is provided in the docstrings. The repository contains a zip file `data v2.zip` containing raw text files with the data generated in the paper (also `data.zip` for v1 of the paper). The main file is `typicality_of_contextuality/core.py`, which is divided into 4 sections:
 ## Random sampling routines
 Routines employ functions from `numpy` and `qutip` libraries to randomly generate Hilbert space vectors, density operators and unitary rotations. It also provides the equally distributed effects for `Parallel_Typicality_fixed`.
 ## Typicality routines
@@ -85,6 +84,11 @@ Provides a collection of routines that build up to `Parallel_Typicality` and `Pa
 Contains the main function of this repository. Example usage provided above.
 ## Typicality analysis in the paper
 Provides the routines that generated the data in the manuscript that acompanies this repository. Additionally, provides the function `Typicality_POM` that estimates the average success rate for a parity-oblivious multiplexing test with randomly sampled measurements, as well as the function `wilson_interval_score` that computes the confiability of the typicality values obtained by these functions.
+
+The repository also contains:
+- `typicality_of_contextuality/math_tools.py`: linear algebra tools and polytope computations
+- `typicality_of_contextuality/preprocessing.py`: preprocessing helper functions
+- `typicality_of_contextuality/simplexEmbedding.py`: Linear Program implementation for simplex embeddability
 
 # Changes from SimplexEmbeddingGPT.git
 In order to reproduce the computations in the paper, the files vendored from SimplexEmbeddingGPT.git were modified accordingly:
