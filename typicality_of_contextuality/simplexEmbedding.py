@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Dec 19 11:29:49 2025
+
+@author: Vinicius
+"""
+
 """
 This file is vendored and modified from:
 https://github.com/RossiVinicius/SimplexEmbeddingGPT-v2
@@ -88,20 +95,20 @@ def SimplicialConeEmbedding(H_S, H_E, accessibleFragmentBornRule, depolarizingMa
          ],
      )
 
-     try:
+    try:
          # Try solving with ECOS first
          problem.solve(solver=cp.ECOS, verbose=False)
          # If ECOS fails, try CLARABEL as a fallback
          if problem.status in ["infeasible", "unbounded"]:
              problem.solve(solver=cp.CLARABEL, verbose=False)
-     except SolverError:
+    except SolverError:
          # If both solvers fail, return robustness=2 and sigma=None (or any placeholder)
          return 2, None
 
      #Check if the solution is valid (robustness should be between 0 and 1)
-     if problem.status not in ["optimal", "optimal_inaccurate"] or robustness.value is None:
+    if problem.status not in ["optimal", "optimal_inaccurate"] or robustness.value is None:
          return 2, None  # Invalid solution, return default
-     else:
+    else:
          return robustness.value, sigma.value
 
 
