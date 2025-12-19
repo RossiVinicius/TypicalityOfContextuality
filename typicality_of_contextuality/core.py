@@ -79,7 +79,7 @@ def random_density_matrix(dim: int, upperbound: float, lowerbound: float, pure: 
             dm = qt.rand_dm(dim, distribution="ginibre").full()  #Samples a ranndom full-rank density operator using qutip
             # Clean numerical noise to ensure hermiticity
             dm_final = np.real(dm) + 1j * np.where(np.abs(np.imag(dm)) < 1e-7, 0, np.imag(dm)) #1e-7 is arbitrarily chosen
-            purity = np.trace(dm_clean @ dm_clean).real 
+            purity = np.trace(dm_final @ dm_final).real 
             if purity <= upperbound and purity >= lowerbound: #Rejection method: if purity is not within the interval, repeat
                 accepted = True   
                 
