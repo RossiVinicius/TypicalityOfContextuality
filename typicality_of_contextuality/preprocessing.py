@@ -1,3 +1,13 @@
+"""
+This file is vendored and modified from:
+https://github.com/RossiVinicius/SimplexEmbeddingGPT-v2
+
+Original authors:
+P. J. Cavalcanti, V. P. Rossi
+
+License: MIT
+"""
+
 import numpy as np
 from itertools import product
 
