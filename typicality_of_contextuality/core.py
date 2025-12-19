@@ -11,7 +11,7 @@ motivation and technicalities.
 __license__ = "MIT"
 __author__ = "Vinicius P Rossi"
 __email__ = "prettirossi.vinicius@gmail.com"
-__version__ = "1.1"
+__version__ = "2.0"
 
 
 import numpy as np
