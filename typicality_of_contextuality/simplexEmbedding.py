@@ -89,7 +89,7 @@ def SimplicialConeEmbedding(H_S, H_E, accessibleFragmentBornRule, depolarizingMa
          cp.Minimize(robustness),
          [
              robustness * depolarizingMap
-             + (1 - robustness) * accessibleFramentBornRule
+             + (1 - robustness) * accessibleFragmentBornRule
              - H_E @ sigma @ H_S
              == 0
          ],
