@@ -67,6 +67,8 @@ Processing (n=16, m=20, dim=2): 100%|##########| 200/200 [23:30<00:00,  7.05s/it
 Out[3]: 16
 ```
 
+Warning: please insert a value `num_workers` compatible with the memory and processing capabilities of your machine. If no value is provided, the code naturally uses `multiprocessing.cpu_count()` to assign the maximum number of workers available.
+
 Sometimes, several warnings such as the following will appear during a batch of processes:
 ```console
 warnings.warn(
