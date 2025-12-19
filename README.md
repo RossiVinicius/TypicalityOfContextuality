@@ -5,7 +5,7 @@ The code provides tools for studying how often quantum contextuality is present 
 
 The main features include:
 - Random sampling of quantum states (pure/mixed) and measurements (projective/POVMs);
-- Parallelized computation for efficient large-scale sampling;
+- Parallelised computation for efficient large-scale sampling;
 - Typicality analysis across various parameter regimes;
 - Statistical analysis with confidence intervals.
 
@@ -160,7 +160,7 @@ In order to reproduce the computations in the paper, the files vendored from Sim
 This repository was developed with the support of the Digital Horizon Europe project FoQaCiA, Foundations of quantum computational advantage, GA No. 101070558, funded by the European Union, NSERC (Canada), and UKRI (UK).
 
 # Contributing
-If you'd like to contribute to the project, feel free to submit issues or pull requests. Any optimisation in the execution of these functions, particularly concerning performance in larger Hilbert spaces.
+If you'd like to contribute to the project, feel free to submit issues or pull requests. We welcome any optimisation in the execution of these functions, particularly concerning performance in larger Hilbert spaces.
 
 # License
 This project is licensed under the MIT License - see the LICENSE file for details.
