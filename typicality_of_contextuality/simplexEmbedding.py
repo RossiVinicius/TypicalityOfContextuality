@@ -1,3 +1,13 @@
+"""
+This file is vendored and modified from:
+https://github.com/RossiVinicius/SimplexEmbeddingGPT-v2
+
+Original authors:
+P. J. Cavalcanti, V. P. Rossi
+
+License: MIT
+"""
+
 from scipy.linalg import lu
 from scipy.sparse import csr_matrix
 import numpy as np
