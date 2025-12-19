@@ -14,6 +14,7 @@ The main features include:
 - Python packages `numpy`, `scipy`, `cvxpy`, `qutip`, `tqdm` and `pycddlib`.
   
 Note: `pycddlib` requires GMP installed on your system. See the `pycddlib` documentation for installation instructions.
+
 Note: All functions from the Linear Program introduced in Physical Review Letters 132 (5), 050202 (2024) are included in this repository, vendored from the original SimplexEmbeddingGPT implementation available at <https://github.com/pjcavalcanti/SimplexEmbeddingGPT>. Please consult documentation for clarity.
 
 # Installation
